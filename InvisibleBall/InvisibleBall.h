@@ -5,41 +5,37 @@
 #include "bakkesmod/plugin/PluginSettingsWindow.h"
 
 #include "version.h"
-constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD);
+constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH);
 
 
-class InvisibleBall: public BakkesMod::Plugin::BakkesModPlugin/*, public BakkesMod::Plugin::PluginSettingsWindow*//*, public BakkesMod::Plugin::PluginWindow*/
+class InvisibleBall: public BakkesMod::Plugin::BakkesModPlugin
 {
 
-	//std::shared_ptr<bool> enabled;
 
-	//Boilerplate
-	virtual void onLoad();
-	virtual void onUnload();
+	struct Color
+	{
+		unsigned char R;
+		unsigned char G;
+		unsigned char B;
+	};
 
-	// Inherited via PluginSettingsWindow
-	/*
-	void RenderSettings() override;
-	std::string GetPluginName() override;
-	void SetImGuiContext(uintptr_t ctx) override;
-	*/
-
-	// Inherited via PluginWindow
-	/*
-
-	bool isWindowOpen_ = false;
-	bool isMinimized_ = false;
-	std::string menuTitle_ = "InvisibleBall";
-
-	virtual void Render() override;
-	virtual std::string GetMenuName() override;
-	virtual std::string GetMenuTitle() override;
-	virtual void SetImGuiContext(uintptr_t ctx) override;
-	virtual bool ShouldBlockInput() override;
-	virtual bool IsActiveOverlay() override;
-	virtual void OnOpen() override;
-	virtual void OnClose() override;
+	struct Popup
+	{
+		std::string text = "";
+		Color color = { 255, 255, 255 };
+		Vector2 startLocation = { -1, -1 };
+	};
 	
-	*/
+	private:
+		bool hideBall = false;
+		bool enableHideBallButton = false;
+
+	public:
+		virtual void onLoad();
+		virtual void onUnload();
+		void handleInvisibleBall();
+		void handleEnableInvisibleBall(bool condition);
+		void setHideBall(bool condition, ServerWrapper server);
+
 };
 

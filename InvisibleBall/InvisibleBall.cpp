@@ -2,47 +2,61 @@
 #include "InvisibleBall.h"
 
 
-BAKKESMOD_PLUGIN(InvisibleBall, "A plugin that allows you to change visibility of ball in field.", plugin_version, PLUGINTYPE_FREEPLAY)
+BAKKESMOD_PLUGIN(InvisibleBall, "Invisible Ball", plugin_version, PLUGINTYPE_FREEPLAY)
 
 std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
+bool hideBall;
+bool enableHideBallButton;
+
 
 void InvisibleBall::onLoad()
 {
 	_globalCvarManager = cvarManager;
-	//cvarManager->log("Plugin loaded!");
 
-	//cvarManager->registerNotifier("my_aweseome_notifier", [&](std::vector<std::string> args) {
-	//	cvarManager->log("Hello notifier!");
-	//}, "", 0);
+	cvarManager->registerNotifier("handleEnableInvisibleBall", [this](std::vector<std::string> args) {
+		gameWrapper->LogToChatbox(enableHideBallButton ? "Ativado" : "Desativado");
+		handleEnableInvisibleBall(enableHideBallButton);
+	}, "", PERMISSION_ALL);
 
-	//auto cvar = cvarManager->registerCvar("template_cvar", "hello-cvar", "just a example of a cvar");
-	//auto cvar2 = cvarManager->registerCvar("template_cvar2", "0", "just a example of a cvar with more settings", true, true, -10, true, 10 );
+	gameWrapper->HookEventWithCallerPost<CarWrapper>("Function TAGame.Ball_TA.OnCarTouch",
+		[this](CarWrapper caller, void* params, std::string eventname) {
+			handleInvisibleBall();
+		});
 
-	//cvar.addOnValueChanged([this](std::string cvarName, CVarWrapper newCvar) {
-	//	cvarManager->log("the cvar with name: " + cvarName + " changed");
-	//	cvarManager->log("the new value is:" + newCvar.getStringValue());
-	//});
+	cvarManager->setBind("F4", "handleEnableInvisibleBall");
 
-	//cvar2.addOnValueChanged(std::bind(&InvisibleBall::YourPluginMethod, this, _1, _2));
-
-	// enabled decleared in the header
-	//enabled = std::make_shared<bool>(false);
-	//cvarManager->registerCvar("TEMPLATE_Enabled", "0", "Enable the TEMPLATE plugin", true, true, 0, true, 1).bindTo(enabled);
-
-	//cvarManager->registerNotifier("NOTIFIER", [this](std::vector<std::string> params){FUNCTION();}, "DESCRIPTION", PERMISSION_ALL);
-	//cvarManager->registerCvar("CVAR", "DEFAULTVALUE", "DESCRIPTION", true, true, MINVAL, true, MAXVAL);//.bindTo(CVARVARIABLE);
-	//gameWrapper->HookEvent("FUNCTIONNAME", std::bind(&TEMPLATE::FUNCTION, this));
-	//gameWrapper->HookEventWithCallerPost<ActorWrapper>("FUNCTIONNAME", std::bind(&InvisibleBall::FUNCTION, this, _1, _2, _3));
-	//gameWrapper->RegisterDrawable(bind(&TEMPLATE::Render, this, std::placeholders::_1));
-
-
-	//gameWrapper->HookEvent("Function TAGame.Ball_TA.Explode", [this](std::string eventName) {
-	//	cvarManager->log("Your hook got called and the ball went POOF");
-	//});
-	// You could also use std::bind here
-	//gameWrapper->HookEvent("Function TAGame.Ball_TA.Explode", std::bind(&InvisibleBall::YourPluginMethod, this);
+	cvarManager->log("Invisible Ball Loaded!");
+	cvarManager->log("Join in a game custom game and hit F4 in keyboard to set on/off the hit ball action.");
 }
 
 void InvisibleBall::onUnload()
 {
+}
+
+void InvisibleBall::handleEnableInvisibleBall(bool condition) {
+	enableHideBallButton = condition;
+}
+
+void InvisibleBall::handleInvisibleBall() {
+	if (!enableHideBallButton) { return; }
+
+	ServerWrapper server = gameWrapper->GetCurrentGameState();
+
+	if (!server) { 
+		cvarManager->log("Please join in the game after.");
+		return;
+	}
+
+	setHideBall(hideBall, server);
+	hideBall = !hideBall;
+}
+
+void InvisibleBall::setHideBall(bool condition, ServerWrapper server) {
+	BallWrapper ball = server.GetBall();
+	if (!ball) { return; }
+	CarWrapper car = gameWrapper->GetLocalCar();
+	if (!car) { return; }
+
+	ball.SetHidden2(condition ? 1 : 0);
+	
 }
