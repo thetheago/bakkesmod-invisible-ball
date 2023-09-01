@@ -5,8 +5,6 @@
 BAKKESMOD_PLUGIN(InvisibleBall, "Invisible Ball", plugin_version, PLUGINTYPE_FREEPLAY)
 
 std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
-bool hideBall;
-bool enableHideBallButton;
 
 
 void InvisibleBall::onLoad()
@@ -14,8 +12,12 @@ void InvisibleBall::onLoad()
 	_globalCvarManager = cvarManager;
 
 	cvarManager->registerNotifier("handleEnableInvisibleBall", [this](std::vector<std::string> args) {
-		gameWrapper->LogToChatbox(enableHideBallButton ? "Ativado" : "Desativado");
-		handleEnableInvisibleBall(enableHideBallButton);
+		gameWrapper->LogToChatbox(!enableHideBallButton ? "Invisible Ball Enable" : "Invisible Ball Disabled");
+		handleEnableInvisibleBall(!enableHideBallButton);
+	}, "", PERMISSION_ALL);
+
+	cvarManager->registerNotifier("forceBallAppear", [this](std::vector<std::string> args) {
+		forceBallAppear();
 	}, "", PERMISSION_ALL);
 
 	gameWrapper->HookEventWithCallerPost<CarWrapper>("Function TAGame.Ball_TA.OnCarTouch",
@@ -24,6 +26,7 @@ void InvisibleBall::onLoad()
 		});
 
 	cvarManager->setBind("F4", "handleEnableInvisibleBall");
+	cvarManager->setBind("F5", "forceBallAppear");
 
 	cvarManager->log("Invisible Ball Loaded!");
 	cvarManager->log("Join in a game custom game and hit F4 in keyboard to set on/off the hit ball action.");
@@ -49,6 +52,11 @@ void InvisibleBall::handleInvisibleBall() {
 
 	setHideBall(hideBall, server);
 	hideBall = !hideBall;
+}
+
+void InvisibleBall::forceBallAppear() {
+	ServerWrapper server = gameWrapper->GetCurrentGameState();
+	setHideBall(false, server);
 }
 
 void InvisibleBall::setHideBall(bool condition, ServerWrapper server) {

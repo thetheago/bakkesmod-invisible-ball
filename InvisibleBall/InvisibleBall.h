@@ -34,6 +34,7 @@ class InvisibleBall: public BakkesMod::Plugin::BakkesModPlugin
 		virtual void onLoad();
 		virtual void onUnload();
 		void handleInvisibleBall();
+		void forceBallAppear();
 		void handleEnableInvisibleBall(bool condition);
 		void setHideBall(bool condition, ServerWrapper server);
 
